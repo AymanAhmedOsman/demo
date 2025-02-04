@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing Docker...
+      - curl -fsSL https://get.docker.com -o get-docker.sh
+      - sh get-docker.sh
+      # - usermod -aG docker $USER
+      # - service docker start
+      - docker --version
+  pre_build:
+    commands:
+      - echo Logging in to Docker Hub...
+      # - DOCKER_HUB_CREDS=$(aws secretsmanager get-secret-value --secret-id docker-hub-creds --query SecretString --output text)
+      # - DOCKER_HUB_USERNAME=$(echo $DOCKER_HUB_CREDS | jq -r .username)
+      # - DOCKER_HUB_PASSWORD=$(echo $DOCKER_HUB_CREDS | jq -r .password)
+      # - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 929806479990.dkr.ecr.us-east-1.amazonaws.com
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t 929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest .
+      - echo Tagging the Docker image...
+      - docker tag 929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest 929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest
+  post_build:
+    commands:
+      - echo Pushing the Docker image to ECR...
+      - docker push 929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest
+      - echo Writing image definitions file...
+      - echo '{"ImageURI":"929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest"}' > imagedefinitions.json
+artifacts:
+  files:
+    - imagedefinitions.json
