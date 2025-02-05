@@ -16,4 +16,4 @@ spec:
       - name: node-js
         image: ayman380/node-js:latest
         ports:
-        - containerPort: 80
+        - containerPort: 3000
