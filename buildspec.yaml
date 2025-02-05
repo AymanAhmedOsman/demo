@@ -9,15 +9,26 @@ phases:
       # - usermod -aG docker $USER
       # - service docker start
       - docker --version
+      - echo "Installing kubectl..."
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x ./kubectl
+      - mv ./kubectl /usr/local/bin/kubectl
+      - echo "Installing aws-iam-authenticator..."
+      - curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+      - chmod +x ./aws-iam-authenticator
+      - mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
+      
   pre_build:
     commands:
       - echo Logging in to Docker Hub...
-      # - DOCKER_HUB_CREDS=$(aws secretsmanager get-secret-value --secret-id docker-hub-creds --query SecretString --output text)
-      # - DOCKER_HUB_USERNAME=$(echo $DOCKER_HUB_CREDS | jq -r .username)
-      # - DOCKER_HUB_PASSWORD=$(echo $DOCKER_HUB_CREDS | jq -r .password)
-      # - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+      - DOCKER_HUB_CREDS=$(aws secretsmanager get-secret-value --secret-id docker-hub-creds --query SecretString --output text)
+      - DOCKER_HUB_USERNAME=$(echo $DOCKER_HUB_CREDS | jq -r .username)
+      - DOCKER_HUB_PASSWORD=$(echo $DOCKER_HUB_CREDS | jq -r .password)
+      - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 929806479990.dkr.ecr.us-east-1.amazonaws.com
+      - echo "Updating kubeconfig..."
+      - aws eks update-kubeconfig --name private-eks-cluster --region us-east-1
   build:
     commands:
       - echo Building the Docker image...
@@ -30,6 +41,9 @@ phases:
       - docker push 929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest
       - echo Writing image definitions file...
       - echo '{"ImageURI":"929806479990.dkr.ecr.us-east-1.amazonaws.com/myrepo:latest"}' > imagedefinitions.json
+      - echo "Deploying to EKS..."
+      - kubectl apply -f NodeJSDeployment.yaml
+      - kubectl apply -f NodeJSservice.yaml
 artifacts:
   files:
     - imagedefinitions.json
