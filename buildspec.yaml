@@ -32,15 +32,15 @@ phases:
   build:
     commands:
       - echo Building the Docker image...
-      - docker build -t 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:latest .
+      - docker build -t 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:v1 .
       - echo Tagging the Docker image...
-      - docker tag 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:latest 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:latest
+      - docker tag 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:v1 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:v1
   post_build:
     commands:
       - echo Pushing the Docker image to ECR...
-      - docker push 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:latest
+      - docker push 929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:v1
       - echo Writing image definitions file...
-      - echo '{"ImageURI":"929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:latest"}' > imagedefinitions.json
+      - echo '{"ImageURI":"929806479990.dkr.ecr.us-east-1.amazonaws.com/my-private-repo:v1"}' > imagedefinitions.json
       - echo "Deploying to EKS..."
       - kubectl apply -f NodeJSDeployment.yaml
       - kubectl apply -f NodeJSservice.yaml
