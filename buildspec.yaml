@@ -28,7 +28,7 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 929806479990.dkr.ecr.us-east-1.amazonaws.com
       - echo "Updating kubeconfig..."
-      # - aws eks update-kubeconfig --name private-eks-cluster --region us-east-1
+      - aws eks update-kubeconfig --name private-eks-cluster --region us-east-1
   build:
     commands:
       - echo Building the Docker image...
